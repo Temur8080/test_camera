@@ -49,6 +49,7 @@ BASE_DIR = app_dir()
 CONFIG_PATH = BASE_DIR / "config.yaml"
 FFMPEG_BIN = "ffmpeg"
 FFMPEG_PROCS: Dict[str, subprocess.Popen] = {}
+LAST_RESTART: Dict[str, float] = {}
 
 
 def find_ffmpeg() -> Optional[str]:
@@ -221,22 +222,16 @@ def fetch_streams(cfg: dict) -> List[dict]:
 
 
 def ffmpeg_output_args(cfg: dict) -> List[str]:
-    """Hikvision timestamp ogohlantirishlari — copy yoki transcode."""
-    if cfg.get("ffmpeg_transcode"):
+    if cfg.get("ffmpeg_transcode", True):
         return [
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-tune",
-            "zerolatency",
-            "-g",
-            "25",
-            "-pix_fmt",
-            "yuv420p",
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-tune", "zerolatency",
+            "-g", "50",
+            "-pix_fmt", "yuv420p",
             "-an",
         ]
-    return ["-c:v", "copy", "-an"]
+    return ["-c:v", "copy", "-an", "-avoid_negative_ts", "make_zero"]
 
 
 def start_ffmpeg(cfg: dict, stream_id: str, src: str, dst: str) -> None:
@@ -244,28 +239,19 @@ def start_ffmpeg(cfg: dict, stream_id: str, src: str, dst: str) -> None:
         FFMPEG_BIN,
         "-nostdin",
         "-hide_banner",
-        "-loglevel",
-        "error" if cfg.get("ffmpeg_quiet") else "warning",
-        "-rtsp_transport",
-        "tcp",
-        "-fflags",
-        "+genpts+igndts",
-        "-use_wallclock_as_timestamps",
-        "1",
-        "-i",
-        src,
+        "-loglevel", "error" if cfg.get("ffmpeg_quiet") else "warning",
+        "-rtsp_transport", "tcp",
+        "-stimeout", "10000000",
+        "-i", src,
         *ffmpeg_output_args(cfg),
-        "-f",
-        "rtsp",
-        "-rtsp_transport",
-        "tcp",
+        "-f", "rtsp",
+        "-rtsp_transport", "tcp",
         dst,
     ]
-    mode = "transcode" if cfg.get("ffmpeg_transcode") else "copy"
-    print(f"Push ({mode}): {stream_id} -> {dst}")
-    if not cfg.get("ffmpeg_quiet"):
-        print("  (timestamp ogohlantirishlari odatda xato emas — video ishlasa OK)")
+    mode = "transcode" if cfg.get("ffmpeg_transcode", True) else "copy"
+    print(f"Push ({mode}): {stream_id}")
     FFMPEG_PROCS[stream_id] = subprocess.Popen(cmd)
+    LAST_RESTART[stream_id] = time.time()
 
 
 def stop_stream(stream_id: str) -> None:
@@ -282,6 +268,14 @@ def stop_stream(stream_id: str) -> None:
 def stop_all_ffmpeg() -> None:
     for sid in list(FFMPEG_PROCS):
         stop_stream(sid)
+
+
+def can_restart(stream_id: str, cfg: dict) -> bool:
+    cooldown = int(cfg.get("ffmpeg_restart_cooldown", 20))
+    elapsed = time.time() - LAST_RESTART.get(stream_id, 0)
+    if elapsed < cooldown:
+        return False
+    return True
 
 
 def sync_streams(cfg: dict) -> None:
@@ -308,6 +302,10 @@ def sync_streams(cfg: dict) -> None:
             continue
         if proc:
             stop_stream(sid)
+        if not can_restart(sid, cfg):
+            wait = int(cfg.get("ffmpeg_restart_cooldown", 20) - (time.time() - LAST_RESTART.get(sid, 0)))
+            print(f"Kutish ({sid}): {max(1, wait)}s — tez qayta ulanish oldini olish")
+            continue
         start_ffmpeg(cfg, sid, src, dst)
 
 
@@ -317,7 +315,6 @@ def active_stream_ids() -> List[str]:
         if proc.poll() is None:
             alive.append(sid)
         else:
-            print(f"ffmpeg to'xtadi: {sid}, qayta ishga tushiriladi")
             FFMPEG_PROCS.pop(sid, None)
     return alive
 
@@ -334,13 +331,13 @@ def post_heartbeat(cfg: dict) -> None:
 
 
 def agent_loop(cfg: dict) -> None:
-    interval = int(cfg.get("sync_interval", 10))
+    interval = int(cfg.get("sync_interval", 15))
     while True:
+        sync_streams(cfg)
         try:
             post_heartbeat(cfg)
         except requests.RequestException as exc:
             print(f"Heartbeat xato: {exc}")
-        sync_streams(cfg)
         time.sleep(interval)
 
 
