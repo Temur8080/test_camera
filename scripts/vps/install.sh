@@ -33,7 +33,9 @@ apt-get update -qq
 apt-get install -y python3 python3-venv python3-pip curl ca-certificates
 
 echo "=== Python venv ==="
-python3 -m venv venv
+if [[ ! -d venv ]]; then
+  python3 -m venv venv
+fi
 venv/bin/pip install -q --upgrade pip
 venv/bin/pip install -q -r server/requirements.txt
 
