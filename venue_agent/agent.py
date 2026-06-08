@@ -150,6 +150,8 @@ def probe_onvif_http(host: str, timeout: float = 1.5) -> Optional[str]:
     for url in (
         f"http://{host}/onvif/device_service",
         f"http://{host}:80/onvif/device_service",
+        f"http://{host}:8080/onvif/device_service",
+        f"http://{host}:8899/onvif/device_service",
     ):
         try:
             r = requests.get(url, timeout=timeout)
@@ -178,14 +180,55 @@ def fallback_scan_subnet(subnet: str, workers: int = 64, timeout: float = 0.5) -
     return sorted(results)
 
 
+def manual_camera_xaddrs(cfg: dict) -> List[str]:
+    hosts = cfg.get("camera_hosts") or []
+    if not hosts:
+        return []
+    out = []
+    for h in hosts:
+        h = str(h).strip()
+        if not h:
+            continue
+        url = probe_onvif_http(h, timeout=2.0) or f"http://{h}/onvif/device_service"
+        out.append(url)
+        print(f"  Qo'lda: {h} -> {url}")
+    return out
+
+
 def discover_cameras(cfg: dict) -> List[str]:
-    timeout = float(cfg.get("scan_timeout", 3.0))
-    print("Kameralarni qidiryapman...")
+    local_ip = get_local_ip()
+    print(f"Kompyuter IP: {local_ip or 'noma\'lum'}")
+
+    manual = manual_camera_xaddrs(cfg)
+    if manual:
+        return manual
+
+    timeout = float(cfg.get("scan_timeout", 5.0))
+    print("Kameralarni qidiryapman (ONVIF)...")
     xaddrs = probe_onvif(timeout=timeout)
+    if xaddrs:
+        return xaddrs
+
+    subnet = cfg.get("subnet") or default_subnet()
+    scan_timeout = float(cfg.get("scan_host_timeout", 1.0))
+    workers = int(cfg.get("scan_workers", 64))
+    print(f"Multicast bo'sh. Subnet scan: {subnet} (timeout {scan_timeout}s)")
+    xaddrs = fallback_scan_subnet(subnet, workers=workers, timeout=scan_timeout)
+
+    if not xaddrs and cfg.get("scan_retry", True):
+        print("Qayta urinish (10s kutish)...")
+        time.sleep(10)
+        xaddrs = probe_onvif(timeout=timeout) or fallback_scan_subnet(
+            subnet, workers=workers, timeout=scan_timeout
+        )
+
     if not xaddrs:
-        subnet = cfg.get("subnet") or default_subnet()
-        print(f"Multicast bo'sh. Subnet scan: {subnet}")
-        xaddrs = fallback_scan_subnet(subnet, timeout=0.5)
+        print("\nKamera topilmadi. Tekshiring:")
+        print("  - Agent toyxona PC da ishlayaptimi (kamera bilan bir Wi-Fi/LAN)?")
+        print("  - Kamera yoqilganmi? IP to'g'rimi?")
+        print("  - config.yaml: camera_hosts: [\"192.168.1.64\"] qo'lda yozing")
+        print(f"  - subnet: \"{subnet}\" yoki to'g'ri tarmoq")
+
     return xaddrs
 
 

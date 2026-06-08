@@ -8,7 +8,14 @@ rtsp_publish_host: "SIZNING_VPS_IP"
 rtsp_publish_port: 8554
 
 subnet: null
-scan_timeout: 3.0
+scan_timeout: 5.0
+scan_host_timeout: 1.0
+scan_workers: 64
+scan_retry: true
+
+# Qo'lda kamera IP (scan ishlamasa):
+# camera_hosts:
+#   - "192.168.1.64"
 sync_interval: 15
 
 # Hikvision uchun transcode barqarorroq (Broken pipe oldini oladi)
