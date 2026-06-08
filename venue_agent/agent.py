@@ -278,13 +278,13 @@ def ffmpeg_output_args(cfg: dict) -> List[str]:
 
 
 def start_ffmpeg(cfg: dict, stream_id: str, src: str, dst: str) -> None:
+    # Windows ffmpeg da -stimeout ishlamaydi
     cmd = [
         FFMPEG_BIN,
         "-nostdin",
         "-hide_banner",
         "-loglevel", "error" if cfg.get("ffmpeg_quiet") else "warning",
         "-rtsp_transport", "tcp",
-        "-stimeout", "10000000",
         "-i", src,
         *ffmpeg_output_args(cfg),
         "-f", "rtsp",
