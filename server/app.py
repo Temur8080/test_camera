@@ -179,21 +179,23 @@ def verify_agent_key(agent_id: str, key: str) -> bool:
 
 
 async def go2rtc_add_stream(stream_id: str, rtsp_src: str) -> None:
-    """go2rtc ga stream qo'shish (VPS ichidagi MediaMTX RTSP)."""
+    """go2rtc ga stream qo'shish (mavjud bo'lsa yangilamaydi)."""
     url = f"{GO2RTC_API}/api/streams"
     params = {"name": stream_id, "src": rtsp_src}
     async with httpx.AsyncClient(timeout=10.0) as client:
         r = await client.put(url, params=params)
         if r.status_code not in (200, 201):
-            # Ba'zi versiyalarda POST
             r = await client.post(url, params=params)
         if r.status_code >= 400:
             raise HTTPException(502, f"go2rtc xato: {r.text}")
 
 
-async def go2rtc_refresh_stream(stream_id: str) -> None:
-    await go2rtc_remove_stream(stream_id)
-    await go2rtc_add_stream(stream_id, go2rtc_src_url(stream_id))
+async def go2rtc_sync_active_streams(stream_ids: List[str]) -> None:
+    for sid in stream_ids:
+        try:
+            await go2rtc_add_stream(sid, go2rtc_src_url(sid))
+        except HTTPException:
+            pass
 
 
 async def go2rtc_remove_stream(stream_id: str) -> None:
@@ -303,7 +305,7 @@ async def set_camera_credentials(
             (body.username, body.password, rtsp, ts, stream_id),
         )
 
-    await go2rtc_refresh_stream(stream_id)
+    await go2rtc_add_stream(stream_id, go2rtc_src_url(stream_id))
     return {"ok": True, "stream_id": stream_id, "ready": True}
 
 
@@ -375,7 +377,7 @@ async def agent_register(
             )
 
             if cam_user and cam_pass:
-                await go2rtc_refresh_stream(stream_id)
+                await go2rtc_add_stream(stream_id, go2rtc_src_url(stream_id))
 
         if registered_ids:
             placeholders = ",".join("?" * len(registered_ids))
@@ -464,6 +466,9 @@ async def agent_heartbeat(
                 "UPDATE cameras SET streaming = 1, online = 1 WHERE stream_id = ? AND agent_id = ?",
                 (sid, agent_id),
             )
+
+    if active:
+        await go2rtc_sync_active_streams(list(active))
 
     return {"ok": True, "active": len(active)}
 

@@ -63,6 +63,16 @@ input {
   color: var(--text);
 }
 
+select {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
 button {
   margin-top: 1.25rem;
   width: 100%;

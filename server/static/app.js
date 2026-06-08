@@ -129,6 +129,7 @@ $("auth-form").addEventListener("submit", async (e) => {
       body: JSON.stringify({
         username: $("cam-user").value.trim(),
         password: $("cam-pass").value,
+        channel: $("cam-channel").value,
       }),
     });
     $("auth-error").textContent = "Video tayyorlanmoqda, kuting...";
@@ -202,7 +203,7 @@ async function openPlayer(cam) {
   }
   $("player-title").textContent = cam.name;
   const src = encodeURIComponent(cam.stream_id);
-  $("player-frame").src = `${go2rtcUrl}/stream.html?src=${src}&mode=webrtc,mse,hls`;
+  $("player-frame").src = `${go2rtcUrl}/stream.html?src=${src}&mode=mse,webrtc`;
   show("player-view");
 }
 

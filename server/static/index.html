@@ -44,6 +44,11 @@
             <input type="text" id="cam-user" autocomplete="username" required placeholder="admin" />
             <label>Kamera parol</label>
             <input type="password" id="cam-pass" autocomplete="current-password" required placeholder="••••••••" />
+            <label>Stream (Hikvision)</label>
+            <select id="cam-channel">
+              <option value="101">101 — asosiy (HD)</option>
+              <option value="102" selected>102 — sub (yengil, tavsiya)</option>
+            </select>
             <button type="submit">Saqlash va ko‘rish</button>
             <p id="auth-error" class="error hidden"></p>
           </form>
@@ -61,6 +66,6 @@
       </div>
     </section>
   </div>
-  <script src="/static/app.js?v=3"></script>
+  <script src="/static/app.js?v=4"></script>
 </body>
 </html>

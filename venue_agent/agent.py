@@ -50,6 +50,7 @@ CONFIG_PATH = BASE_DIR / "config.yaml"
 FFMPEG_BIN = "ffmpeg"
 FFMPEG_PROCS: Dict[str, subprocess.Popen] = {}
 LAST_RESTART: Dict[str, float] = {}
+STREAM_STARTED: Dict[str, float] = {}
 
 
 def find_ffmpeg() -> Optional[str]:
@@ -295,6 +296,7 @@ def start_ffmpeg(cfg: dict, stream_id: str, src: str, dst: str) -> None:
     print(f"Push ({mode}): {stream_id}")
     FFMPEG_PROCS[stream_id] = subprocess.Popen(cmd)
     LAST_RESTART[stream_id] = time.time()
+    STREAM_STARTED[stream_id] = time.time()
 
 
 def stop_stream(stream_id: str) -> None:
@@ -314,11 +316,14 @@ def stop_all_ffmpeg() -> None:
 
 
 def can_restart(stream_id: str, cfg: dict) -> bool:
-    cooldown = int(cfg.get("ffmpeg_restart_cooldown", 20))
-    elapsed = time.time() - LAST_RESTART.get(stream_id, 0)
-    if elapsed < cooldown:
-        return False
-    return True
+    cooldown = int(cfg.get("ffmpeg_restart_cooldown", 5))
+    last = LAST_RESTART.get(stream_id, 0)
+    started = STREAM_STARTED.get(stream_id, 0)
+    run_sec = time.time() - started if started else 999
+    # Agar ffmpeg 15s+ ishlagan bo'lsa — darhol qayta ishga tushirish
+    if run_sec > 15:
+        return True
+    return (time.time() - last) >= cooldown
 
 
 def sync_streams(cfg: dict) -> None:
@@ -346,8 +351,9 @@ def sync_streams(cfg: dict) -> None:
         if proc:
             stop_stream(sid)
         if not can_restart(sid, cfg):
-            wait = int(cfg.get("ffmpeg_restart_cooldown", 20) - (time.time() - LAST_RESTART.get(sid, 0)))
-            print(f"Kutish ({sid}): {max(1, wait)}s — tez qayta ulanish oldini olish")
+            wait = int(cfg.get("ffmpeg_restart_cooldown", 5) - (time.time() - LAST_RESTART.get(sid, 0)))
+            if wait > 0:
+                print(f"Kutish ({sid}): {wait}s")
             continue
         start_ffmpeg(cfg, sid, src, dst)
 
