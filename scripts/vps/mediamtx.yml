@@ -1,0 +1,10 @@
+# MediaMTX — agent ffmpeg orqali publish qiladi
+
+rtspAddress: :8554
+api: yes
+apiAddress: :9997
+
+paths:
+  all_others:
+    source: publisher
+    overridePublisher: yes

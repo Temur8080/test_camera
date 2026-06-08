@@ -1,0 +1,9 @@
+api:
+  listen: ":1984"
+
+webrtc:
+  candidates:
+    - stun:8555
+
+log:
+  level: info

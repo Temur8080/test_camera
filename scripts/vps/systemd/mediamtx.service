@@ -1,0 +1,14 @@
+[Unit]
+Description=MediaMTX RTSP server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/kamera-cloud/bin/mediamtx /opt/kamera-cloud/scripts/vps/mediamtx.yml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

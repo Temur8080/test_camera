@@ -1,0 +1,15 @@
+[Unit]
+Description=Kamera Cloud API + Web
+After=network-online.target mediamtx.service go2rtc.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/kamera-cloud/server
+ExecStart=/opt/kamera-cloud/venv/bin/python app.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

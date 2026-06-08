@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kamera Cloud</title>
+  <link rel="stylesheet" href="/static/style.css?v=2" />
+</head>
+<body>
+  <div id="app">
+    <section id="login-view" class="panel">
+      <h1>Kamera Cloud</h1>
+      <p class="muted">Toyxona kameralarini masofadan real vaqtda ko‘ring</p>
+      <form id="login-form">
+        <label>Login</label>
+        <input type="text" id="username" autocomplete="username" required />
+        <label>Parol</label>
+        <input type="password" id="password" autocomplete="current-password" required />
+        <button type="submit">Kirish</button>
+        <p id="login-error" class="error hidden"></p>
+      </form>
+    </section>
+
+    <section id="dashboard-view" class="hidden">
+      <header class="topbar">
+        <div>
+          <h1>Kameralar</h1>
+          <p class="muted" id="user-label"></p>
+        </div>
+        <button id="logout-btn" class="ghost">Chiqish</button>
+      </header>
+      <div class="dashboard-layout">
+        <div class="dashboard-main">
+          <div id="camera-grid" class="grid"></div>
+          <p id="empty-msg" class="muted hidden">Hali kamera yo‘q. Toyxona kompyuterida agent ishga tushiring.</p>
+        </div>
+
+        <aside id="auth-panel" class="auth-panel hidden">
+          <h2>Kamera login / parol</h2>
+          <p class="muted" id="auth-panel-hint">Kameraga ulanish uchun login va parol kiriting.</p>
+          <p id="auth-panel-camera" class="auth-camera-name"></p>
+          <form id="auth-form">
+            <label>Kamera login</label>
+            <input type="text" id="cam-user" autocomplete="username" required placeholder="admin" />
+            <label>Kamera parol</label>
+            <input type="password" id="cam-pass" autocomplete="current-password" required placeholder="••••••••" />
+            <button type="submit">Saqlash va ko‘rish</button>
+            <p id="auth-error" class="error hidden"></p>
+          </form>
+        </aside>
+      </div>
+    </section>
+
+    <section id="player-view" class="hidden">
+      <header class="topbar">
+        <button id="back-btn" class="ghost">← Orqaga</button>
+        <h2 id="player-title">Kamera</h2>
+      </header>
+      <div class="player-wrap">
+        <iframe id="player-frame" allow="autoplay; fullscreen" title="Kamera"></iframe>
+      </div>
+    </section>
+  </div>
+  <script src="/static/app.js?v=3"></script>
+</body>
+</html>

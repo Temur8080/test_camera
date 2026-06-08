@@ -1,0 +1,28 @@
+# Maxfiy va generatsiya qilingan fayllar
+**/config.yaml
+server/data.db
+/go2rtc.yaml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Agent build
+venue_agent/dist/
+venue_agent/build/
+venue_agent/*.spec
+venue_agent/ffmpeg/
+venue_agent/*.rar
+
+# IDE / OS
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Temp
+ffmpeg-download.zip
+_ffmpeg_tmp/

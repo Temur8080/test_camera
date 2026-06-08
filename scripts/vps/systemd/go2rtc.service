@@ -1,0 +1,14 @@
+[Unit]
+Description=go2rtc WebRTC/MSE gateway
+After=network-online.target mediamtx.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/kamera-cloud/bin/go2rtc -config /opt/kamera-cloud/scripts/vps/go2rtc.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

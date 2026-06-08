@@ -1,0 +1,22 @@
+# Toyxona agent — kamera paroli KERAK EMAS (web sahifada kiritiladi)
+
+server_url: "http://SIZNING_VPS_IP:8080"
+agent_id: "toyxona1"
+agent_key: "AGENT_KALIT_1"
+
+# VPS ga video yuborish
+rtsp_publish_host: "SIZNING_VPS_IP"
+rtsp_publish_port: 8554
+
+# Scan
+subnet: null
+scan_timeout: 3.0
+
+# Server bilan sinxronlash (sekund)
+sync_interval: 10
+
+# ffmpeg: timestamp ogohlantirishlari bo'lsa video ishlayotgan bo'lsa OK
+# ffmpeg_transcode: true   # muammo bo'lsa yoqing
+# ffmpeg_quiet: true
+ffmpeg_transcode: false
+ffmpeg_quiet: false

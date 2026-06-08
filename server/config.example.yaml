@@ -1,0 +1,29 @@
+# VPS server sozlamalari — nusxalab config.yaml qiling
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  secret_key: "O'ZGARTIRING_uzun_random_kalit"
+  public_host: "SIZNING_VPS_IP"   # brauzer uchun (masalan: 203.0.113.10)
+
+# Web foydalanuvchilar (login / parol)
+users:
+  - username: admin
+    password: admin123
+
+# Toyxona agentlari (har bir .exe uchun kalit)
+agents:
+  - agent_id: toyxona1
+    agent_key: "AGENT_KALIT_1"
+    name: "Asosiy toyxona"
+
+# go2rtc (VPS da ishlaydi)
+go2rtc:
+  api: "http://127.0.0.1:1984"
+  public_url: "http://SIZNING_VPS_IP:1984"   # foydalanuvchi brauzeri shu manzilga ulanadi
+
+# MediaMTX — agent ffmpeg orqali shu yerda publish qiladi
+mediamtx:
+  rtsp_publish_base: "rtsp://127.0.0.1:8554"
+  # Agent tashqaridan publish qiladi (VPS public IP)
+  rtsp_publish_host: "SIZNING_VPS_IP"
